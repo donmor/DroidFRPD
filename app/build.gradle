@@ -1,0 +1,149 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.gradle.download)
+}
+
+android {
+    namespace = 'top.donmor.droidfrpd'
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId "top.donmor.droidfrpd"
+        minSdk = 26
+        targetSdk = 36
+        versionCode gradle.versionCode
+        versionName gradle.version + '+' + ((String) gradle.frpVersion).replaceAll('\\D', '')
+
+        buildConfigField('String', 'BINARY_FRP_S', "\"libfrps_${((String) gradle.frpVersion).replace('.', '_')}.so\"")
+        buildConfigField('String', 'BINARY_FRP_C', "\"libfrpc_${((String) gradle.frpVersion).replace('.', '_')}.so\"")
+        buildConfigField('int', 'F_DROID_SIGN_HASH', "${gradle.fDroidSignHash}")
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+    sourceSets {
+        main {
+            //noinspection GrDeprecatedAPIUsage
+            jni {
+                srcDirs 'src/main/jni', 'src/main/jniLibs'
+            }
+        }
+    }
+    androidResources {
+        noCompress = ['.lic']
+    }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+}
+
+dependencies {
+
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.constraintlayout
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.navigation.fragment
+    implementation libs.navigation.ui
+    implementation libs.preference
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
+
+// All automations
+
+import de.undercouch.gradle.tasks.download.Download
+
+tasks.register('copyLicense', Download) {
+    src file('../LICENSE').toURI().toURL()
+    dest 'src/main/res/raw/license.lic'
+    onlyIfModified true
+}
+
+tasks.register('updateCore', Download) {
+    src "http://github.com/fatedier/frp/releases/download/v${gradle.frpVersion}/frp_${gradle.frpVersion}_android_arm64.tar.gz"
+    src "http://github.com/fatedier/frp/releases/download/v${gradle.frpVersion}/frp_${gradle.frpVersion}_linux_amd64.tar.gz"
+    dest 'build/tmp/'
+    onlyIfNewer true
+    finalizedBy 'cleanRedudantCores'
+}
+
+tasks.register('cleanRedudantCores', Delete) {
+    fileTree('build/tmp/').matching {
+        include "frp_*_*_*.tar.gz"
+        exclude "frp_${gradle.frpVersion}_*_*.tar.gz"
+    }.each {f ->
+        delete f
+    }
+}
+
+tasks.register('checkCores') {
+    boolean needsUpdate = false
+    GString version = "${gradle.frpVersion}"
+    ['arm64-v8a', 'x86_64'].each {
+        fileTree("src/main/jniLibs/${it}/").each {f ->
+            if (!f.name.matches("libfrp[sc]_${version.replace('.', '_')}\\.so")) {
+                needsUpdate = true
+            }
+        }
+    }
+    if (needsUpdate) {
+        finalizedBy 'copyCores'
+    }
+}
+
+tasks.register('copyCores') {
+    dependsOn 'updateCore'
+    doLast {
+        GString version = "${gradle.frpVersion}"
+        String version_ = version.replace('.', '_')
+        ['arm64-v8a': "frp_${version}_android_arm64", 'x86_64': "frp_${version}_linux_amd64"].each {
+            GString jniDir = "src/main/jniLibs/${it.key}/"
+            GString pkgPath = "build/tmp/${it.value}.tar.gz"
+            GString pkgDir = it.value
+            delete fileTree("${jniDir}/").matching {
+                exclude "libfrps_${version_}.so"
+                exclude "libfrpc_${version_}.so"
+            }
+            FileTree files = tarTree(pkgPath).matching {
+                include "${pkgDir}/frps"
+                include "${pkgDir}/frpc"
+            }
+            def urls = []
+            files.each {f ->
+                urls << f.toURI().toURL()
+            }
+            download {}.run {
+                src urls
+                dest jniDir
+                onlyIfModified true
+                eachFile { details ->
+                    details.name = "lib${details.name}_${version_}.so"
+                }
+            }
+        }
+    }
+}
+
+gradle.projectsEvaluated {
+    preBuild.dependsOn('copyLicense')
+    preBuild.dependsOn('checkCores')
+}

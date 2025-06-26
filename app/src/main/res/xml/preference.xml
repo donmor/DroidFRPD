@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:key="@string/pk_g_client"
+        android:title="@string/preference_g_client">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="@string/pk_client_auto_restart"
+            android:title="@string/preference_auto_restart" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/pk_client_start_on_boot"
+            android:title="@string/preference_start_on_boot" />
+        <Preference
+            android:persistent="false"
+            android:key="@string/pk_client_edit_config"
+            android:title="@string/preference_client_edit_config" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="@string/pk_g_server"
+        android:title="@string/preference_g_server">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="@string/pk_server_auto_restart"
+            android:title="@string/preference_auto_restart" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/pk_server_start_on_boot"
+            android:title="@string/preference_start_on_boot" />
+        <Preference
+            android:persistent="false"
+            android:key="@string/pk_server_edit_config"
+            android:title="@string/preference_server_edit_config" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="@string/pk_g_global"
+        android:title="@string/preference_g_global">
+        <Preference
+            android:persistent="false"
+            android:key="@string/pk_global_check_update"
+            android:title="@string/preference_global_check_update" />
+        <Preference
+            android:persistent="false"
+            android:key="@string/pk_global_about"
+            android:title="@string/preference_global_about" />
+    </PreferenceCategory>
+</androidx.preference.PreferenceScreen>

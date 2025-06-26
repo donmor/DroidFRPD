@@ -1,0 +1,27 @@
+pluginManagement {
+    repositories {
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "DroidFRPD"
+gradle.ext.version = '1.0.0'
+gradle.ext.versionCode = 1
+gradle.ext.frpVersion = '0.62.1'
+gradle.ext.fDroidSignHash = 0   // TODO: f-droid signature hash
+include ':app'

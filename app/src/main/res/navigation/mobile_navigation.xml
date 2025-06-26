@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@+id/nav_client">
+
+    <fragment
+        android:id="@+id/nav_client"
+        android:name="top.donmor.droidfrpd.ui.client.ClientFragment"
+        android:label="@string/menu_client"
+        tools:layout="@layout/fragment_client" />
+
+    <fragment
+        android:id="@+id/nav_server"
+        android:name="top.donmor.droidfrpd.ui.server.ServerFragment"
+        android:label="@string/menu_server"
+        tools:layout="@layout/fragment_server" />
+
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="top.donmor.droidfrpd.ui.settings.SettingsFragment"
+        android:label="@string/menu_settings" />
+</navigation>

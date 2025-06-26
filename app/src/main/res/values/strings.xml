@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name" translatable="false">DroidFRPD</string>
+    <string name="nav_header_subtitle">FRP Daemon for Android</string>
+    <string name="nav_header_desc" translatable="false">Navigation header</string>
+    <string name="update_url" translatable="false">https://github.com/donmor/DroidFRPD/releases/latest</string>
+    <string name="update_url_f_droid" translatable="false">https://f-droid.org/packages/top.donmor.droidfrpd/</string>
+
+    <string name="menu_client">Client</string>
+    <string name="menu_server">Server</string>
+    <string name="menu_settings">Settings</string>
+
+    <string name="pk_g_client" translatable="false">pk_g_client</string>
+    <string name="pk_g_server" translatable="false">pk_g_server</string>
+    <string name="pk_g_global" translatable="false">pk_g_global</string>
+    <string name="pk_client_auto_restart" translatable="false">pk_client_auto_restart</string>
+    <string name="pk_client_edit_config" translatable="false">pk_client_edit_config</string>
+    <string name="pk_client_start_on_boot" translatable="false">pk_client_start_on_boot</string>
+    <string name="pk_server_auto_restart" translatable="false">pk_server_auto_restart</string>
+    <string name="pk_server_edit_config" translatable="false">pk_server_edit_config</string>
+    <string name="pk_server_start_on_boot" translatable="false">pk_server_start_on_boot</string>
+    <string name="pk_global_check_update" translatable="false">pk_global_check_update</string>
+    <string name="pk_global_about" translatable="false">pk_global_about</string>
+
+    <string name="preference_g_client">FRP Client</string>
+    <string name="preference_g_server">FRP Server</string>
+    <string name="preference_g_global">Global Settings</string>
+    <string name="preference_auto_restart">Restart daemon automatically</string>
+    <string name="preference_start_on_boot">Start on device boot</string>
+    <string name="preference_client_edit_config">Edit FRP Client config</string>
+    <string name="preference_server_edit_config">Edit FRP Server config</string>
+    <string name="preference_global_check_update">Check for update</string>
+    <string name="preference_global_update">New version: %s</string>
+    <string name="preference_global_about">About DroidFRPD</string>
+
+    <string name="ui_client_d">FRP Client Daemon</string>
+    <string name="ui_server_d">FRP Server Daemon</string>
+    <string name="ui_running">Daemon is running</string>
+    <string name="ui_stopped">Daemon is stopped</string>
+    <string name="ui_stopped_err">Daemon stopped unexpectedly</string>
+    <string name="ui_stopped_restart">Daemon stopped unexpectedly, restarting…</string>
+    <string name="ui_save">Save</string>
+    <string name="ui_already_latest">Already up to date</string>
+    <string name="ui_about">About DroidFRPD</string>
+    <string name="ui_about_desc">Android FRP daemon manager</string>
+    <string name="ui_ver">%s</string>
+    <string name="ui_ver_f_droid">%s  F-Droid Build</string>
+    <string name="ui_eula">End-User Agreement</string>
+    <string name="ui_eula_lic">This software is licensed under GPL-3.0:</string>
+    <string name="ui_eula_permissions">The following permission is in use:</string>
+    <string name="ui_eula_permissions_text">Show notifications\nHave full network access\nRun foreground service\nRun at startup</string>
+    <string name="ui_accept">Accept</string>
+    <string name="ui_decline">Decline</string>
+    <string name="ui_close">Close</string>
+    <string name="ui_revoke">You are about to revoke the End-User Agreement.</string>
+</resources>
