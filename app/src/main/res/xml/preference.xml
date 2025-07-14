@@ -35,6 +35,13 @@
     <PreferenceCategory
         android:key="@string/pk_g_global"
         android:title="@string/preference_g_global">
+        <CheckBoxPreference
+            android:key="@string/pk_global_hide_activity"
+            android:title="@string/preference_global_hide_activity" />
+        <Preference
+            android:persistent="false"
+            android:key="@string/pk_global_ignore_optimization"
+            android:title="@string/preference_global_ignore_optimization" />
         <Preference
             android:persistent="false"
             android:key="@string/pk_global_check_update"

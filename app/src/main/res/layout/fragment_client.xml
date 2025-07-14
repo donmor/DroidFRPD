@@ -16,36 +16,4 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-<!--    <LinearLayout-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:orientation="vertical"-->
-<!--        android:gravity="center_horizontal"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent">-->
-
-<!--&lt;!&ndash;        <TextView&ndash;&gt;-->
-<!--&lt;!&ndash;            android:id="@+id/textHome"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_width="match_parent"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_height="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_marginStart="8dp"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_marginTop="8dp"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_marginEnd="8dp"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:textAlignment="center"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:textSize="20sp" />&ndash;&gt;-->
-<!--&lt;!&ndash;        <TextView&ndash;&gt;-->
-<!--&lt;!&ndash;            android:id="@+id/textLogClient"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_width="match_parent"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_height="300dp"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:gravity="bottom" />&ndash;&gt;-->
-<!--&lt;!&ndash;        <ToggleButton&ndash;&gt;-->
-<!--&lt;!&ndash;            android:id="@+id/toggleLogClient"&ndash;&gt;-->
-<!--&lt;!&ndash;            style="@android:style/Holo.ButtonBar"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_width="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:layout_height="wrap_content"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:textOff="@string/ui_log_show"&ndash;&gt;-->
-<!--&lt;!&ndash;            android:textOn="@string/ui_log_hide" />&ndash;&gt;-->
-<!--    </LinearLayout>-->
 </androidx.constraintlayout.widget.ConstraintLayout>

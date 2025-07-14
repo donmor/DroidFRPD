@@ -1,18 +1,26 @@
 package top.donmor.droidfrpd.ui.settings;
 
+import static top.donmor.droidfrpd.Utils.SCH_PACKAGE;
 import static top.donmor.droidfrpd.Utils.checkUpdate;
 import static top.donmor.droidfrpd.Utils.getConf;
 import static top.donmor.droidfrpd.Utils.showAppInfo;
 
+import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.preference.Preference;
@@ -31,19 +39,29 @@ import top.donmor.droidfrpd.R;
 import top.donmor.droidfrpd.Utils;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
+	@SuppressLint("BatteryLife")
 	@Override
 	public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
 		setPreferencesFromResource(R.xml.preference, rootKey);
 		FragmentActivity activity = getActivity();
 		Preference preferenceConfigClient = findPreference(getString(R.string.pk_client_edit_config)),
 				preferenceConfigServer = findPreference(getString(R.string.pk_server_edit_config)),
+				preferenceStartOnBootClient = findPreference(getString(R.string.pk_client_start_on_boot)),
+				preferenceStartOnBootServer = findPreference(getString(R.string.pk_server_start_on_boot)),
+				preferenceHideApp = findPreference(getString(R.string.pk_global_hide_activity)),
+				preferenceOptimization = findPreference(getString(R.string.pk_global_ignore_optimization)),
 				preferenceUpdate = findPreference(getString(R.string.pk_global_check_update)),
 				preferenceAbout = findPreference(getString(R.string.pk_global_about));
 		assert preferenceConfigClient != null
 				&& preferenceConfigServer != null
+				&& preferenceStartOnBootClient != null
+				&& preferenceStartOnBootServer != null
+				&& preferenceHideApp != null
+				&& preferenceOptimization != null
 				&& preferenceUpdate != null
 				&& preferenceAbout != null
 				&& activity != null;
+		String packageName = activity.getPackageName();
 		// Create config editor dialog
 		for (boolean isServer : new boolean[]{false, true}) {
 			Preference p = isServer ? preferenceConfigServer : preferenceConfigClient;
@@ -54,8 +72,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 				editor.setTextSize(16);
 				final File[] f = {getConf(activity, isServer)};
 				try (FileInputStream is = new FileInputStream(f[0]);
-									   InputStreamReader reader = new InputStreamReader(is);
-									   BufferedReader bufferedReader = new BufferedReader(reader)) {
+					 InputStreamReader reader = new InputStreamReader(is);
+					 BufferedReader bufferedReader = new BufferedReader(reader)) {
 					String s = bufferedReader.lines().collect(Collectors.joining(System.lineSeparator()));
 					editor.setText(s, TextView.BufferType.EDITABLE);
 				} catch (IOException e) {
@@ -74,7 +92,29 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 						}).show();
 				return true;
 			});
+			Preference p2 = isServer ? preferenceStartOnBootServer : preferenceStartOnBootClient;
+			p2.setOnPreferenceChangeListener((preference, newValue) -> {
+				if ((Boolean) newValue)
+					Toast.makeText(activity, R.string.ui_requires_boot_permission, Toast.LENGTH_SHORT).show();
+				return true;
+			});
 		}
+		preferenceHideApp.setOnPreferenceChangeListener((preference, newValue) -> {
+			boolean v = (Boolean) newValue;
+			((ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE)).getAppTasks()
+					.forEach(appTask -> appTask.setExcludeFromRecents(v));
+			return true;
+		});
+		ActivityResultLauncher<Intent> reqIgnoreOptimization = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), o -> {
+			if (((PowerManager) activity.getSystemService(Context.POWER_SERVICE)).isIgnoringBatteryOptimizations(packageName))
+				preferenceOptimization.setVisible(false);
+		});
+		preferenceOptimization.setOnPreferenceClickListener(preference -> {
+			reqIgnoreOptimization.launch(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).setData(Uri.parse(SCH_PACKAGE + packageName)));
+			return true;
+		});
+		if (((PowerManager) activity.getSystemService(Context.POWER_SERVICE)).isIgnoringBatteryOptimizations(packageName))
+			preferenceOptimization.setVisible(false);
 		preferenceUpdate.setOnPreferenceClickListener(preference -> {
 			preferenceUpdate.setEnabled(false);
 			new Thread(() -> {

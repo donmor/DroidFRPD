@@ -1,11 +1,17 @@
 package top.donmor.droidfrpd;
 
+import static top.donmor.droidfrpd.BuildConfig.ENABLE_CLIENT;
+import static top.donmor.droidfrpd.BuildConfig.ENABLE_SERVER;
 import static top.donmor.droidfrpd.Utils.KEY_EULA;
 import static top.donmor.droidfrpd.Utils.KEY_IS_SVR;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.google.android.material.navigation.NavigationView;
 
@@ -58,6 +64,12 @@ public class MainActivity extends AppCompatActivity {
 				graph.setStartDestination(navDestination.getId());
 			}
 		});
+		if (!ENABLE_CLIENT || !ENABLE_SERVER) {
+			Menu navMenu = navigationView.getMenu();
+			MenuItem client = navMenu.findItem(R.id.nav_client), server = navMenu.findItem(R.id.nav_server);
+			if (!ENABLE_CLIENT && client != null) client.setVisible(false);
+			if (!ENABLE_SERVER && server != null) server.setVisible(false);
+		}
 		Intent intent = getIntent();
 		if (Intent.ACTION_MAIN.equalsIgnoreCase(intent.getAction()) && intent.hasExtra(KEY_IS_SVR)) {
 			int id = intent.getBooleanExtra(KEY_IS_SVR, false) ? R.id.nav_server : R.id.nav_client;
@@ -65,11 +77,17 @@ public class MainActivity extends AppCompatActivity {
 			// 				stacked fragments in a hacky way.
 			navController.navigate(id, null, new NavOptions.Builder().setPopUpTo(id, true).build());
 			graph.setStartDestination(id);
+		} else if (!ENABLE_CLIENT) {
+			navController.navigate(R.id.nav_server, null, new NavOptions.Builder().setPopUpTo(R.id.nav_server, true).build());
+			graph.setStartDestination(R.id.nav_server);
 		}
 		SharedPreferences preferences = Utils.getPreferences(this);
 		if (!preferences.getBoolean(KEY_EULA, false)) Utils.showAppInfo(this, accepted -> {
 			if (accepted) preferences.edit().putBoolean(KEY_EULA, true).apply(); else finishAffinity();
 		});
+		if (preferences.getBoolean(getString(R.string.pk_global_hide_activity), false))
+			((ActivityManager) getSystemService(Context.ACTIVITY_SERVICE)).getAppTasks()
+					.forEach(appTask -> appTask.setExcludeFromRecents(true));
 	}
 
 	@Override

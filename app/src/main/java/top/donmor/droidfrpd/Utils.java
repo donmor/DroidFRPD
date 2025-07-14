@@ -13,12 +13,12 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.content.res.AssetFileDescriptor;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.text.method.ScrollingMovementMethod;
 import android.view.Gravity;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -27,12 +27,8 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -48,6 +44,7 @@ public abstract class Utils {
 	static final String DIR_LOG = "log";
 	static final String KEY_EULA = "eula";
 	static final String KEY_IS_SVR = "is_server";
+	private static final String LIC_ASSET_URL = "file:///android_asset/LICENSE";
 	static final String LOG_PTN_C = "frpc.%tY%tm%td%tH%tM%tS%tL.log";
 	static final String LOG_PTN_S = "frps.%tY%tm%td%tH%tM%tS%tL.log";
 	static final String PARAM_CONF = "-c";
@@ -55,6 +52,8 @@ public abstract class Utils {
 	private static final String KEY_HDR_LOC = "Location";
 	private static final String PARAM_VERIFY = "verify";
 	private static final String PREF_POST = "_preferences";
+	public static final String SCH_PACKAGE = "package:";
+
 
 	public static Boolean isFDroidBuild = null;
 
@@ -66,6 +65,8 @@ public abstract class Utils {
 	}
 
 	public static boolean badConfig(Context context, @NonNull File confFile, boolean isServer) {
+		SharedPreferences preferences = getPreferences(context);
+		if (!preferences.getBoolean(KEY_EULA, false)) return true;
 		String conf = confFile.getName();
 		try (CloseableProcess closeableProcess = new CloseableProcess(new ProcessBuilder(
 				context.getApplicationInfo().nativeLibraryDir + '/' + (isServer ? BINARY_FRP_S : BINARY_FRP_C),
@@ -135,24 +136,12 @@ public abstract class Utils {
 		licLbl.setTextAppearance(android.R.style.TextAppearance_DeviceDefault_Widget_TextView);
 		layout.addView(licLbl);
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp4 * 30);
-		TextView licView = new TextView(context);
+		WebView licView = new WebView(context);
 		licView.setLayoutParams(params);
 		licView.setPadding(dp4, 0, dp4, 0);
-		licView.setHorizontallyScrolling(true);
-		licView.setMovementMethod(ScrollingMovementMethod.getInstance());
-		licView.setTextAppearance(android.R.style.TextAppearance_DeviceDefault_Widget_TextView);
-		licView.setTypeface(Typeface.MONOSPACE);
-		licView.setTextSize(12);
 		licView.setBackgroundColor(ContextCompat.getColor(context, R.color.field_color));
-		try (AssetFileDescriptor fd = context.getResources().openRawResourceFd(R.raw.license);
-			 FileInputStream is = fd.createInputStream();
-			 FileChannel fc = is.getChannel()) {
-			ByteBuffer buffer = ByteBuffer.allocate((int) fc.size());
-			fc.read(buffer);
-			buffer.flip();
-			licView.setText(new String(buffer.array(), StandardCharsets.UTF_8));
-		} catch (IOException ignored) {
-		}
+		licView.getSettings().setUseWideViewPort(true);
+		licView.loadUrl(LIC_ASSET_URL);
 		layout.addView(licView);
 		TextView pmLbl = new TextView(context);
 		pmLbl.setText(R.string.ui_eula_permissions);

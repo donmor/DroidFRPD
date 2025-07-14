@@ -3,6 +3,30 @@ plugins {
     alias(libs.plugins.gradle.download)
 }
 
+boolean useBinary = true
+boolean enableClient = true
+boolean enableServer = true
+boolean enableArm64 = true
+boolean enableAmd64 = true
+
+def ccAmd64
+def ccArm64
+try {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    ccAmd64 = "${properties.getProperty('ccAmd64')}"
+    ccArm64 = "${properties.getProperty('ccArm64')}"
+    useBinary = Boolean.valueOf("${properties.getProperty('frp.useBinary')}")
+    enableClient = !Boolean.valueOf("${properties.getProperty('frp.disableClient')}")
+    enableServer = !Boolean.valueOf("${properties.getProperty('frp.disableServer')}")
+    enableArm64 = !Boolean.valueOf("${properties.getProperty('frp.disableArm64')}")
+    enableAmd64 = !Boolean.valueOf("${properties.getProperty('frp.disableAmd64')}")
+} catch (ignored) {
+}
+
+assert enableClient || enableServer
+assert enableArm64 || enableAmd64
+
 android {
     namespace = 'top.donmor.droidfrpd'
     compileSdk = 36
@@ -11,12 +35,14 @@ android {
         applicationId "top.donmor.droidfrpd"
         minSdk = 26
         targetSdk = 36
-        versionCode gradle.versionCode
+        versionCode 1
         versionName gradle.version + '+' + ((String) gradle.frpVersion).replaceAll('\\D', '')
 
         buildConfigField('String', 'BINARY_FRP_S', "\"libfrps_${((String) gradle.frpVersion).replace('.', '_')}.so\"")
         buildConfigField('String', 'BINARY_FRP_C', "\"libfrpc_${((String) gradle.frpVersion).replace('.', '_')}.so\"")
         buildConfigField('int', 'F_DROID_SIGN_HASH', "${gradle.fDroidSignHash}")
+        buildConfigField('boolean', 'ENABLE_CLIENT', "${enableClient}")
+        buildConfigField('boolean', 'ENABLE_SERVER', "${enableServer}")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -72,75 +98,215 @@ dependencies {
 
 import de.undercouch.gradle.tasks.download.Download
 
-tasks.register('copyLicense', Download) {
-    src file('../LICENSE').toURI().toURL()
-    dest 'src/main/res/raw/license.lic'
-    onlyIfModified true
+tasks.register('cleanRedudantCores', Delete) {
+    GString version = "${gradle.frpVersion}"
+    String version_ = version.replace('.', '_')
+    delete fileTree("src/main/jniLibs/").matching {
+        if (enableClient && enableArm64) {
+            exclude "arm64-v8a/libfrpc_${version_}.so"
+        }
+        if (enableServer && enableArm64) {
+            exclude "arm64-v8a/libfrps_${version_}.so"
+        }
+        if (enableClient && enableAmd64) {
+            exclude "x86_64/libfrpc_${version_}.so"
+        }
+        if (enableServer && enableAmd64) {
+            exclude "x86_64/libfrps_${version_}.so"
+        }
+    }
 }
 
-tasks.register('updateCore', Download) {
+tasks.register('updateCorePackages', Download) {
     src "http://github.com/fatedier/frp/releases/download/v${gradle.frpVersion}/frp_${gradle.frpVersion}_android_arm64.tar.gz"
     src "http://github.com/fatedier/frp/releases/download/v${gradle.frpVersion}/frp_${gradle.frpVersion}_linux_amd64.tar.gz"
     dest 'build/tmp/'
     onlyIfNewer true
-    finalizedBy 'cleanRedudantCores'
 }
 
-tasks.register('cleanRedudantCores', Delete) {
-    fileTree('build/tmp/').matching {
-        include "frp_*_*_*.tar.gz"
-        exclude "frp_${gradle.frpVersion}_*_*.tar.gz"
-    }.each {f ->
-        delete f
+tasks.register('copyCores') {
+    dependsOn 'updateCorePackages'
+    dependsOn 'cleanRedudantCores'
+    doLast {
+        GString version = "${gradle.frpVersion}"
+        String version_ = version.replace('.', '_')
+        def arch = [:]
+        if (enableArm64) {
+            arch.putLast('arm64-v8a', "frp_${version}_android_arm64")
+        }
+        if (enableAmd64) {
+            arch.putLast('x86_64', "frp_${version}_linux_amd64")
+        }
+        arch.each {
+            GString jniDir = "src/main/jniLibs/${it.key}/"
+            GString pkgPath = "build/tmp/${it.value}.tar.gz"
+            GString pkgDir = it.value
+            FileTree files = tarTree(pkgPath).matching {
+                if (enableClient) {
+                    include "${pkgDir}/frpc"
+                }
+                if (enableServer) {
+                    include "${pkgDir}/frps"
+                }
+            }
+            def urls = []
+            files.each { f ->
+                urls << f.toURI().toURL()
+            }
+            download {}.run {
+                src urls
+                onlyIfModified true
+                if (urls.size() > 1) {
+                    dest jniDir
+                    eachFile { details ->
+                        details.name = "lib${details.name}_${version_}.so"
+                    }
+                } else {
+                    dest jniDir + '/' + "lib${files.files.iterator().next().name}_${version_}.so"
+                }
+            }
+        }
     }
+}
+
+tasks.register('buildAmd64FrpClientCore', Exec) {
+    GString version = "${gradle.frpVersion}"
+    String version_ = version.replace('.', '_')
+    String obj = 'frpc'
+    String arch = 'amd64'
+    String os = 'linux'
+    String jniDir = 'x86_64'
+    int cgo = 0
+    workingDir "../frp"
+    executable 'env'
+    args 'go', 'build', '-trimpath', '-ldflags', '-s -w -buildid=', '-tags', obj,
+            '-o', "../app/src/main/jniLibs/${jniDir}/lib${obj}_${version_}.so", "./cmd/${obj}"
+    try {
+        if (file(ccAmd64).isFile()) {
+            environment 'CC', ccAmd64
+            os = 'android'
+            cgo = 1
+        }
+    } catch (ignored) {
+    }
+    environment 'CGO_ENABLED', cgo
+    environment 'GOOS', os
+    environment 'GOARCH', arch
+}
+
+tasks.register('buildAmd64FrpServerCore', Exec) {
+    GString version = "${gradle.frpVersion}"
+    String version_ = version.replace('.', '_')
+    String obj = 'frps'
+    String arch = 'amd64'
+    String os = 'linux'
+    String jniDir = 'x86_64'
+    int cgo = 0
+    workingDir "../frp"
+    executable 'env'
+    args 'go', 'build', '-trimpath', '-ldflags', '-s -w -buildid=', '-tags', obj,
+            '-o', "../app/src/main/jniLibs/${jniDir}/lib${obj}_${version_}.so", "./cmd/${obj}"
+    try {
+        if (file(ccAmd64).isFile()) {
+            environment 'CC', ccAmd64
+            os = 'android'
+            cgo = 1
+        }
+    } catch (ignored) {
+    }
+    environment 'CGO_ENABLED', cgo
+    environment 'GOOS', os
+    environment 'GOARCH', arch
+}
+
+tasks.register('buildArm64FrpClientCore', Exec) {
+    GString version = "${gradle.frpVersion}"
+    String version_ = version.replace('.', '_')
+    String obj = 'frpc'
+    String arch = 'arm64'
+    String os = 'android'
+    String jniDir = 'arm64-v8a'
+    int cgo = 0
+    workingDir "../frp"
+    executable 'env'
+    args 'go', 'build', '-trimpath', '-ldflags', '-s -w -buildid=', '-tags', obj,
+            '-o', "../app/src/main/jniLibs/${jniDir}/lib${obj}_${version_}.so", "./cmd/${obj}"
+    try {
+        if (file(ccArm64).isFile()) {
+            environment 'CC', ccArm64
+            cgo = 1
+        }
+    } catch (ignored) {
+    }
+    environment 'CGO_ENABLED', cgo
+    environment 'GOOS', os
+    environment 'GOARCH', arch
+}
+
+tasks.register('buildArm64FrpServerCore', Exec) {
+    GString version = "${gradle.frpVersion}"
+    String version_ = version.replace('.', '_')
+    String obj = 'frps'
+    String arch = 'arm64'
+    String os = 'android'
+    String jniDir = 'arm64-v8a'
+    int cgo = 0
+    workingDir "../frp"
+    executable 'env'
+    args 'go', 'build', '-trimpath', '-ldflags', '-s -w -buildid=', '-tags', obj,
+            '-o', "../app/src/main/jniLibs/${jniDir}/lib${obj}_${version_}.so", "./cmd/${obj}"
+    try {
+        if (file(ccArm64).isFile()) {
+            environment 'CC', ccArm64
+            cgo = 1
+        }
+    } catch (ignored) {
+    }
+    environment 'CGO_ENABLED', cgo
+    environment 'GOOS', os
+    environment 'GOARCH', arch
 }
 
 tasks.register('checkCores') {
     boolean needsUpdate = false
     GString version = "${gradle.frpVersion}"
-    ['arm64-v8a', 'x86_64'].each {
-        fileTree("src/main/jniLibs/${it}/").each {f ->
-            if (!f.name.matches("libfrp[sc]_${version.replace('.', '_')}\\.so")) {
-                needsUpdate = true
-            }
-        }
+    if (file("src/main/jniLibs/arm64-v8a/libfrpc_${version.replace('.', '_')}.so").isFile() ^ (enableClient && enableArm64)) {
+        needsUpdate = true
+    }
+    if (file("src/main/jniLibs/arm64-v8a/libfrps_${version.replace('.', '_')}.so").isFile() ^ (enableServer && enableArm64)) {
+        needsUpdate = true
+    }
+    if (file("src/main/jniLibs/x86_64/libfrpc_${version.replace('.', '_')}.so").isFile() ^ (enableClient && enableAmd64)) {
+        needsUpdate = true
+    }
+    if (file("src/main/jniLibs/x86_64/libfrps_${version.replace('.', '_')}.so").isFile() ^ (enableServer && enableAmd64)) {
+        needsUpdate = true
     }
     if (needsUpdate) {
-        finalizedBy 'copyCores'
+        if (useBinary) {
+            finalizedBy 'copyCores'
+        } else {
+            if (enableClient && enableArm64) {
+                finalizedBy 'buildArm64FrpClientCore'
+            }
+            if (enableServer && enableArm64) {
+                finalizedBy 'buildArm64FrpServerCore'
+            }
+            if (enableClient && enableAmd64) {
+                finalizedBy 'buildAmd64FrpClientCore'
+            }
+            if (enableServer && enableAmd64) {
+                finalizedBy 'buildAmd64FrpServerCore'
+            }
+            finalizedBy 'cleanRedudantCores'
+        }
     }
 }
 
-tasks.register('copyCores') {
-    dependsOn 'updateCore'
-    doLast {
-        GString version = "${gradle.frpVersion}"
-        String version_ = version.replace('.', '_')
-        ['arm64-v8a': "frp_${version}_android_arm64", 'x86_64': "frp_${version}_linux_amd64"].each {
-            GString jniDir = "src/main/jniLibs/${it.key}/"
-            GString pkgPath = "build/tmp/${it.value}.tar.gz"
-            GString pkgDir = it.value
-            delete fileTree("${jniDir}/").matching {
-                exclude "libfrps_${version_}.so"
-                exclude "libfrpc_${version_}.so"
-            }
-            FileTree files = tarTree(pkgPath).matching {
-                include "${pkgDir}/frps"
-                include "${pkgDir}/frpc"
-            }
-            def urls = []
-            files.each {f ->
-                urls << f.toURI().toURL()
-            }
-            download {}.run {
-                src urls
-                dest jniDir
-                onlyIfModified true
-                eachFile { details ->
-                    details.name = "lib${details.name}_${version_}.so"
-                }
-            }
-        }
-    }
+tasks.register('copyLicense', Download) {
+    src file('../LICENSE').toURI().toURL()
+    dest 'src/main/assets/'
+    onlyIfModified true
 }
 
 gradle.projectsEvaluated {
