@@ -21,6 +21,6 @@ Perform the following steps to build core executables from source:
 - Clone this repository with its submodule (using `--recursive`)
 - Install Android NDK and Go
 - Setup `ccArm64` and `ccAmd64` in `local.properties` (see `local.example.properties`)
-- Set `frp.useBinary = false` in `local.properties`
+- Set `frp.buildExecutables = true` in `local.properties`
 - Now any Android build operations will trigger `go build` as well
 

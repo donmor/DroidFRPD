@@ -2,19 +2,13 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@+id/nav_client">
+    app:startDestination="@+id/nav_daemons">
 
     <fragment
-        android:id="@+id/nav_client"
-        android:name="top.donmor.droidfrpd.ui.client.ClientFragment"
-        android:label="@string/menu_client"
-        tools:layout="@layout/fragment_client" />
-
-    <fragment
-        android:id="@+id/nav_server"
-        android:name="top.donmor.droidfrpd.ui.server.ServerFragment"
-        android:label="@string/menu_server"
-        tools:layout="@layout/fragment_server" />
+        android:id="@+id/nav_daemons"
+        android:name="top.donmor.droidfrpd.ui.daemons.DaemonsFragment"
+        android:label="@string/menu_daemons"
+        tools:layout="@layout/fragment_daemons" />
 
     <fragment
         android:id="@+id/nav_settings"

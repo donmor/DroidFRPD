@@ -2,7 +2,7 @@ package top.donmor.droidfrpd;
 
 import static top.donmor.droidfrpd.Utils.DIR_LOG;
 import static top.donmor.droidfrpd.Utils.KEY_EULA;
-import static top.donmor.droidfrpd.Utils.KEY_IS_SVR;
+import static top.donmor.droidfrpd.Utils.KEY_NOTIFICATION;
 import static top.donmor.droidfrpd.Utils.PARAM_CONF;
 import static top.donmor.droidfrpd.Utils.getConf;
 import static top.donmor.droidfrpd.Utils.getPreferences;
@@ -82,7 +82,7 @@ public abstract class FRPDaemon extends Service {
 								.setAction(Intent.ACTION_MAIN)
 								.addCategory(Intent.CATEGORY_LAUNCHER)
 								.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-								.putExtra(KEY_IS_SVR, isServer),
+								.putExtra(KEY_NOTIFICATION, true),
 						PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT))
 				.build());
 		processBuilder = new ProcessBuilder(
@@ -127,8 +127,9 @@ public abstract class FRPDaemon extends Service {
 							stop(true);
 							break;
 						} else if (getPreferences(getApplicationContext()).getBoolean(getString(pkAutoRestart), false)) {
-							new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(
-									getApplicationContext(), R.string.ui_stopped_restart, Toast.LENGTH_SHORT).show());
+							new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(getApplicationContext(),
+									isServer ? R.string.ui_server_stopped_restart : R.string.ui_client_stopped_restart,
+									Toast.LENGTH_SHORT).show());
 							//noinspection BusyWait
 							Thread.sleep(3000);
 							if (process == null) {
@@ -139,7 +140,8 @@ public abstract class FRPDaemon extends Service {
 							mProcess = process;
 						} else {
 							new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(
-									getApplicationContext(), R.string.ui_stopped_err, Toast.LENGTH_SHORT).show());
+									getApplicationContext(), isServer ? R.string.ui_server_stopped_err : R.string.ui_client_stopped_err,
+									Toast.LENGTH_SHORT).show());
 							stop(true);
 							break;
 						}

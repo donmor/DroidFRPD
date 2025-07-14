@@ -20,7 +20,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "DroidFRPD"
-gradle.ext.version = '0.1.0'
-gradle.ext.frpVersion = '0.62.1'
+gradle.ext.version = '0.2.0'
+gradle.ext.frpVersion = '0.63.0'
 gradle.ext.fDroidSignHash = 0   // TODO: f-droid signature hash
 include ':app'

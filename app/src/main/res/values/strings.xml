@@ -1,12 +1,9 @@
 <resources>
     <string name="app_name" translatable="false">DroidFRPD</string>
-    <string name="nav_header_subtitle">FRP Daemon for Android</string>
-    <string name="nav_header_desc" translatable="false">Navigation header</string>
     <string name="update_url" translatable="false">https://github.com/donmor/DroidFRPD/releases/latest</string>
     <string name="update_url_f_droid" translatable="false">https://f-droid.org/packages/top.donmor.droidfrpd/</string>
 
-    <string name="menu_client">Client</string>
-    <string name="menu_server">Server</string>
+    <string name="menu_daemons">Daemons</string>
     <string name="menu_settings">Settings</string>
 
     <string name="pk_g_client" translatable="false">pk_g_client</string>
@@ -39,9 +36,14 @@
     <string name="ui_client_d">FRP Client Daemon</string>
     <string name="ui_server_d">FRP Server Daemon</string>
     <string name="ui_running">Daemon is running</string>
-    <string name="ui_stopped">Daemon is stopped</string>
-    <string name="ui_stopped_err">Daemon stopped unexpectedly</string>
-    <string name="ui_stopped_restart">Daemon stopped unexpectedly, restarting…</string>
+    <string name="ui_client_running">Client is running</string>
+    <string name="ui_client_stopped">Client is stopped</string>
+    <string name="ui_server_running">Server is running</string>
+    <string name="ui_server_stopped">Server is stopped</string>
+    <string name="ui_client_stopped_err">FRP Client daemon stopped unexpectedly</string>
+    <string name="ui_server_stopped_err">FRP Server daemon stopped unexpectedly</string>
+    <string name="ui_client_stopped_restart">FRP Client daemon stopped unexpectedly, restarting…</string>
+    <string name="ui_server_stopped_restart">FRP Server daemon stopped unexpectedly, restarting…</string>
     <string name="ui_save">Save</string>
     <string name="ui_requires_boot_permission">Starting on boot requests corresponding permission. You may have to grant it for this app manually.</string>
     <string name="ui_already_latest">Already up to date</string>

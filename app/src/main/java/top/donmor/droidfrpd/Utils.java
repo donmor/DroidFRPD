@@ -43,7 +43,7 @@ public abstract class Utils {
 	private static final String CONF_INI_S = "frps.ini";
 	static final String DIR_LOG = "log";
 	static final String KEY_EULA = "eula";
-	static final String KEY_IS_SVR = "is_server";
+	static final String KEY_NOTIFICATION = "notification";
 	private static final String LIC_ASSET_URL = "file:///android_asset/LICENSE";
 	static final String LOG_PTN_C = "frpc.%tY%tm%td%tH%tM%tS%tL.log";
 	static final String LOG_PTN_S = "frps.%tY%tm%td%tH%tM%tS%tL.log";
@@ -216,6 +216,8 @@ public abstract class Utils {
 			Signature[] signatures = info != null ? info.signatures : null;
 			isFDroidBuild = signatures != null && Arrays.stream(signatures).anyMatch(
 					signature -> signature.hashCode() == F_DROID_SIGN_HASH);
+			System.out.println("APK Signatures:");
+			System.out.println(Arrays.toString(signatures));
 			return isFDroidBuild;
 		} catch (PackageManager.NameNotFoundException ignored) {
 		}

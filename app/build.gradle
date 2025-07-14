@@ -16,7 +16,7 @@ try {
     properties.load(project.rootProject.file('local.properties').newDataInputStream())
     ccAmd64 = "${properties.getProperty('ccAmd64')}"
     ccArm64 = "${properties.getProperty('ccArm64')}"
-    useBinary = Boolean.valueOf("${properties.getProperty('frp.useBinary')}")
+    useBinary = !Boolean.valueOf("${properties.getProperty('frp.buildExecutables')}")
     enableClient = !Boolean.valueOf("${properties.getProperty('frp.disableClient')}")
     enableServer = !Boolean.valueOf("${properties.getProperty('frp.disableServer')}")
     enableArm64 = !Boolean.valueOf("${properties.getProperty('frp.disableArm64')}")
