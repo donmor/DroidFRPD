@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name" translatable="false">DroidFRPD</string>
     <string name="update_url" translatable="false">https://github.com/donmor/DroidFRPD/releases/latest</string>
+    <string name="update_api" translatable="false">https://api.github.com/repos/donmor/DroidFRPD/releases/latest</string>
     <string name="update_url_f_droid" translatable="false">https://f-droid.org/packages/top.donmor.droidfrpd/</string>
+    <string name="update_api_f_droid" translatable="false">https://f-droid.org/api/v1/packages/org.fdroid.fdroid</string>
 
     <string name="menu_daemons">Daemons</string>
     <string name="menu_settings">Settings</string>

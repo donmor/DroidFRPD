@@ -13,7 +13,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.text.method.ScrollingMovementMethod;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -25,14 +24,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -54,10 +62,12 @@ public abstract class Utils {
 	static final String LOG_PTN_S = "frps.%tY%tm%td%tH%tM%tS%tL.log";
 	static final String PARAM_CONF = "-c";
 	static final String S0 = "";
-	private static final String KEY_HDR_LOC = "Location";
 	private static final String PARAM_VERIFY = "verify";
 	private static final String PREF_POST = "_preferences";
 	public static final String SCH_PACKAGE = "package:";
+	private static final String UC_F_DROID_RSP_KEY_1 = "packages";
+	private static final String UC_F_DROID_RSP_KEY_2 = "versionName";
+	private static final String UC_GITHUB_RSP_KEY_1 = "tag_name";
 
 
 	public static Boolean isFDroidBuild = null;
@@ -195,19 +205,27 @@ public abstract class Utils {
 	@Nullable
 	public static String checkUpdate(Context context) {
 		try {
-			URL url = new URL(context.getString(R.string.update_url));
+			URL url = new URL(context.getString(isFDroidBuild ? R.string.update_api_f_droid : R.string.update_api));
 			HttpsURLConnection httpURLConnection = (HttpsURLConnection) url.openConnection();
 			httpURLConnection.setReadTimeout(10000);
-			httpURLConnection.setInstanceFollowRedirects(false);
 			httpURLConnection.connect();
 			int status = httpURLConnection.getResponseCode();
-			if (status != HttpsURLConnection.HTTP_MOVED_TEMP
-					&& status != HttpsURLConnection.HTTP_MOVED_PERM
-					&& status != HttpsURLConnection.HTTP_SEE_OTHER)
-				return null;
-			String latestVersion = Uri.parse(httpURLConnection.getHeaderField(KEY_HDR_LOC)).getLastPathSegment();
-			if (!BuildConfig.VERSION_NAME.equals(latestVersion)) return latestVersion;
-		} catch (IOException | NullPointerException e) {
+			if (status != HttpsURLConnection.HTTP_OK) return null;
+			try (InputStream is = httpURLConnection.getInputStream();
+				 InputStreamReader ir = new InputStreamReader(is, StandardCharsets.UTF_8);
+				 BufferedReader bir = new BufferedReader(ir)) {
+				JSONObject response = new JSONObject(bir.lines().collect(Collectors.joining()));
+				String latestVersion;
+				if (isFDroidBuild) {
+					JSONArray packages = response.getJSONArray(UC_F_DROID_RSP_KEY_1);
+					JSONObject latest = packages.getJSONObject(0);
+					latestVersion = latest.getString(UC_F_DROID_RSP_KEY_2);
+				} else {
+					latestVersion = response.getString(UC_GITHUB_RSP_KEY_1);
+				}
+				if (!BuildConfig.VERSION_NAME.equals(latestVersion)) return latestVersion;
+			}
+		} catch (IOException | NullPointerException | JSONException e) {
 			e.printStackTrace();
 		}
 		return null;
