@@ -1,7 +1,8 @@
 # DroidFRPD
 This is an Android FRP daemon manager based on [fatedier/frp](https://github.com/fatedier/frp) project.
 
-<img src="app/src/main/play/listings/en-US/graphics/phone-screenshots/1.png" width="180" /><img src="app/src/main/play/listings/en-US/graphics/phone-screenshots/2.png" width="180" /><img src="app/src/main/play/listings/en-US/graphics/phone-screenshots/3.png" width="180" /><img src="app/src/main/play/listings/en-US/graphics/phone-screenshots/4.png" width="180" />
+<!--suppress CheckImageSize -->
+<img alt="1" src="app/src/main/play/listings/en-US/graphics/phone-screenshots/1.png" width="180" /> <img alt="2" src="app/src/main/play/listings/en-US/graphics/phone-screenshots/2.png" width="180" /> <img alt="3" src="app/src/main/play/listings/en-US/graphics/phone-screenshots/3.png" width="180" /> <img alt="4" src="app/src/main/play/listings/en-US/graphics/phone-screenshots/4.png" width="180" />
 
 ## Configurations
 #### Manage configuration files
