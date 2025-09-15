@@ -1,0 +1,51 @@
+name: Build & Publish Release APK
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "ref"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref_name }}
+          submodules: 'recursive'
+      - name: Setup project
+        run: |
+          echo "ccAmd64=/usr/local/lib/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android35-clang" | tee -a local.properties
+          echo "ccArm64=/usr/local/lib/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android35-clang" | tee -a local.properties
+          echo "frp.buildExecutables = true" | tee -a local.properties
+          echo "BUILD_REF=${{ github.event.inputs.ref || github.ref_name }}" >> $GITHUB_ENV
+          echo "BUILD_TOOLS_VERSION=$(ls /usr/local/lib/android/sdk/build-tools | sort | tail -n 1)" >> $GITHUB_ENV
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+      - uses: filippoLeporati93/android-release-signer@v1
+        id: sign_app
+        env:
+          BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOLS_VERSION }}
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+      - name: Rename output file
+        if: github.ref_type == 'tag'
+        run: mv ${{ steps.sign_app.outputs.signedReleaseFile }} DroidFRPD-${{ env.BUILD_REF }}.apk
+      - name: Upload to release assets
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: |
+            DroidFRPD-${{ env.BUILD_REF }}.apk
+      - name: Upload as artifacts
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: APK
+          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
