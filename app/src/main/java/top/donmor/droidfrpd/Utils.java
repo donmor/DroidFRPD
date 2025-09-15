@@ -2,7 +2,6 @@ package top.donmor.droidfrpd;
 
 import static top.donmor.droidfrpd.BuildConfig.BINARY_FRP_C;
 import static top.donmor.droidfrpd.BuildConfig.BINARY_FRP_S;
-import static top.donmor.droidfrpd.BuildConfig.F_DROID_SIGN_HASH;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -15,7 +14,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.graphics.Typeface;
 import android.net.Uri;
-import android.os.Build;
 import android.text.method.ScrollingMovementMethod;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -23,19 +21,18 @@ import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.DeprecatedSinceApi;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
-import java.util.HexFormat;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -47,7 +44,8 @@ public abstract class Utils {
 	private static final String CONF_INI_C = "frpc.ini";
 	private static final String CONF_JSON_S = "frps.json";
 	private static final String CONF_INI_S = "frps.ini";
-	private static final String ALG_SHA256 = "SHA-256";
+	private static final String CERT_F_DROID_DN = "CN=FDroid, OU=FDroid, O=fdroid.org, L=ORG, ST=ORG, C=UK";
+	private static final String CERT_F_DROID_TYPE = "X.509";
 	static final String DIR_LOG = "log";
 	static final String KEY_EULA = "eula";
 	static final String KEY_NOTIFICATION = "notification";
@@ -222,35 +220,18 @@ public abstract class Utils {
 			PackageInfo info = pm.getPackageInfo(context.getPackageName(), PackageManager.GET_SIGNATURES);
 			Signature[] signatures = info != null ? info.signatures : null;
 			isFDroidBuild = signatures != null && Arrays.stream(signatures).anyMatch(
-					signature -> Arrays.equals(sha256sum(signature.toByteArray()), Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-								? HexFormat.of().parseHex(F_DROID_SIGN_HASH)
-								: hex2bytes(F_DROID_SIGN_HASH)));
+					signature -> {
+						try {
+							CertificateFactory certFactory = CertificateFactory.getInstance(CERT_F_DROID_TYPE);
+							X509Certificate certificate = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(signature.toByteArray()));
+							return CERT_F_DROID_DN.equals(certificate.getIssuerX500Principal().toString());
+						} catch (CertificateException e) {
+							return false;
+						}
+					});
 			return isFDroidBuild;
 		} catch (PackageManager.NameNotFoundException ignored) {
 		}
 		return false;
-	}
-
-	/**
-	 * Convert HEX String to byte array. Returns null if length is not even, or length = 0
-	 * @noinspection SameParameterValue
-	 */
-	@DeprecatedSinceApi(api = 34)
-	private static byte[] hex2bytes(String hex) {
-		int len = hex.length();
-		if (len == 0 || (len & 1) != 0) return null;
-		byte[] d = new byte[len / 2];
-		for (int i = 0; i < len; i += 2)
-			d[i/2] = (byte) Integer.parseInt(hex, i, i+2, 16);
-		return d;
-	}
-
-	@Nullable
-	private static byte[] sha256sum(byte[] b) {
-		try {
-			return MessageDigest.getInstance(ALG_SHA256).digest(b);
-		} catch (NoSuchAlgorithmException e) {
-			return null;
-		}
 	}
 }

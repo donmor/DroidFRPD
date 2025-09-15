@@ -40,7 +40,6 @@ android {
 
         buildConfigField('String', 'BINARY_FRP_S', "\"libfrps_${((String) gradle.frpVersion).replace('.', '_')}.so\"")
         buildConfigField('String', 'BINARY_FRP_C', "\"libfrpc_${((String) gradle.frpVersion).replace('.', '_')}.so\"")
-        buildConfigField('String', 'F_DROID_SIGN_HASH', "\"${gradle.fDroidSignHash}\"")
         buildConfigField('boolean', 'ENABLE_CLIENT', "${enableClient}")
         buildConfigField('boolean', 'ENABLE_SERVER', "${enableServer}")
 
