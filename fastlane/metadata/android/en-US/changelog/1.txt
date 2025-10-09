@@ -1,0 +1,7 @@
+- Client/Server daemon
+- Config editing
+- Config directory managing
+- Start on boot
+- Hiding from recent
+- Update checking
+- F-Droid signature detection

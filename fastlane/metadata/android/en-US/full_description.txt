@@ -1,11 +1,15 @@
 This is an Android FRP daemon manager based on <a href="https://github.com/fatedier/frp">fatedier/frp</a> project.
 
 <h2>Configurations</h2>
+
 <h4>Manage configuration files</h4>
 Aside of internal configuration editor, the configuration files can be managed via Files app or SAF-compliant apps.
+
 <h4>Start daemon on device boot</h4>
 You may have to grant start on boot permission manually.
+
 <h4>Ignore battery optimization</h4>
 There's an option in Settings that jumps to system battery optimization setting page.
+
 <h4>Remove activity from recents</h4>
 If enabled, DroidFRPD will be removed from Recent Activities, preventing it from being killed unexpectedly.
