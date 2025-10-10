@@ -3,20 +3,25 @@ plugins {
     alias(libs.plugins.gradle.download)
 }
 
-boolean useBinary = true
+boolean buildBinaries = true
 boolean enableClient = true
 boolean enableServer = true
 boolean enableArm64 = true
 boolean enableAmd64 = true
 
+var sdkDirectory = System.getenv("ANDROID_HOME")
+if (sdkDirectory == null) sdkDirectory = System.getenv("ANDROID_SDK_ROOT")
+
 def ccAmd64
 def ccArm64
+def ndkAlt
 try {
     Properties properties = new Properties()
     properties.load(project.rootProject.file('local.properties').newDataInputStream())
-    ccAmd64 = "${properties.getProperty('ccAmd64')}"
-    ccArm64 = "${properties.getProperty('ccArm64')}"
-    useBinary = !Boolean.valueOf("${properties.getProperty('frp.buildExecutables')}")
+    if (sdkDirectory == null) sdkDirectory = properties.getProperty('sdk.dir')
+    ndkAlt = properties.getProperty('ndk.version')
+    // Boolean properties are inverted to keep boolean variables true by default
+    buildBinaries = !Boolean.valueOf("${properties.getProperty('frp.usePrebuiltExecutables')}")
     enableClient = !Boolean.valueOf("${properties.getProperty('frp.disableClient')}")
     enableServer = !Boolean.valueOf("${properties.getProperty('frp.disableServer')}")
     enableArm64 = !Boolean.valueOf("${properties.getProperty('frp.disableArm64')}")
@@ -30,13 +35,14 @@ assert enableArm64 || enableAmd64
 android {
     namespace = 'top.donmor.droidfrpd'
     compileSdk = 36
+    if (ndkAlt != null) ndkVersion = ndkAlt
 
     defaultConfig {
         applicationId "top.donmor.droidfrpd"
         minSdk = 26
         targetSdk = 36
-        versionCode 1
-        versionName gradle.version + '+' + ((String) gradle.frpVersion).replaceAll('\\D', '')
+        versionCode 104
+        versionName "${gradle.version}+${((String) gradle.frpVersion).replaceAll('\\D', '')}"
 
         buildConfigField('String', 'BINARY_FRP_S', "\"libfrps_${((String) gradle.frpVersion).replace('.', '_')}.so\"")
         buildConfigField('String', 'BINARY_FRP_C', "\"libfrpc_${((String) gradle.frpVersion).replace('.', '_')}.so\"")
@@ -161,8 +167,35 @@ tasks.register('copyCores') {
                         details.name = "lib${details.name}_${version_}.so"
                     }
                 } else {
-                    dest jniDir + '/' + "lib${files.files.iterator().next().name}_${version_}.so"
+                    dest "${jniDir}/lib${files.files.iterator().next().name}_${version_}.so"
                 }
+            }
+        }
+    }
+}
+
+tasks.configureEach {t ->
+    if (t.name ==~ /build(Amd64|Arm64)Frp(Client|Server)Core/) {
+        if (ccArm64 == null || ccAmd64 == null) {
+            File llvmPath = file("${sdkDirectory}/ndk/${android.ndkVersion}/toolchains/llvm/prebuilt")
+            llvmPath.eachDir { arch ->
+                File binPath = file("${arch.path}/bin")
+                binPath.eachFileMatch(groovy.io.FileType.FILES, ~/(clang|clang\.exe)/) { ck ->
+                    def check = ("${ck.path} --version").execute()
+                    if (check.waitFor() == 0) {
+                        // Binaries in this arch directory are runnable
+                        binPath.eachFileMatch(groovy.io.FileType.FILES, ~/aarch64-linux-android35-(clang|clang\.exe)/) { cc ->
+                            if (ccArm64 == null) ccArm64 = cc.path
+                        }
+                        binPath.eachFileMatch(groovy.io.FileType.FILES, ~/x86_64-linux-android35-(clang|clang\.exe)/) { cc ->
+                            if (ccAmd64 == null) ccAmd64 = cc.path
+                        }
+                    }
+                }
+            }
+            if (ccArm64 != null && ccAmd64 != null) {
+                println("CCAmd64=${ccAmd64}")
+                println("CCArm64=${ccArm64}")
             }
         }
     }
@@ -282,9 +315,7 @@ tasks.register('checkCores') {
         needsUpdate = true
     }
     if (needsUpdate) {
-        if (useBinary) {
-            finalizedBy 'copyCores'
-        } else {
+        if (buildBinaries) {
             if (enableClient && enableArm64) {
                 finalizedBy 'buildArm64FrpClientCore'
             }
@@ -298,6 +329,8 @@ tasks.register('checkCores') {
                 finalizedBy 'buildAmd64FrpServerCore'
             }
             finalizedBy 'cleanRedudantCores'
+        } else {
+            finalizedBy 'copyCores'
         }
     }
 }
@@ -306,6 +339,12 @@ tasks.register('copyLicense', Download) {
     src file('../LICENSE').toURI().toURL()
     dest 'src/main/assets/'
     onlyIfModified true
+}
+
+tasks.register('ndkVersion') {
+    doLast{
+        println(android.ndkVersion)
+    }
 }
 
 gradle.projectsEvaluated {

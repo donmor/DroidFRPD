@@ -17,9 +17,6 @@ jobs:
           submodules: 'recursive'
       - name: Setup project
         run: |
-          echo "ccAmd64=/usr/local/lib/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android35-clang" | tee -a local.properties
-          echo "ccArm64=/usr/local/lib/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android35-clang" | tee -a local.properties
-          echo "frp.buildExecutables = true" | tee -a local.properties
           echo "BUILD_REF=${{ github.event.inputs.ref || github.ref_name }}" >> $GITHUB_ENV
           echo "BUILD_TOOLS_VERSION=$(ls /usr/local/lib/android/sdk/build-tools | sort | tail -n 1)" >> $GITHUB_ENV
           mkdir release

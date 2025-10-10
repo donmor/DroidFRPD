@@ -1,0 +1,1 @@
+- Frp binaries are now stripped
