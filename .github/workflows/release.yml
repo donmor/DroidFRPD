@@ -8,18 +8,34 @@ on:
         description: "ref"
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.ref || github.ref_name }}
           submodules: 'recursive'
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: 'frp/go.mod'
+          cache-dependency-path: 'frp/go.sum'
       - name: Setup project
+        env:
+          TERM: dumb
         run: |
+          mkdir release
+          go version
+          C_SDK=`grep -o "compileSdk = [0-9]*" app/build.gradle | sed "s/compileSdk = //"`
+          echo "compileSdk = $C_SDK"
+          SDK_MANAGER=/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager
+          yes 2>/dev/null | $SDK_MANAGER --verbose --uninstall `$SDK_MANAGER --list_installed | awk '{print $1}' | grep -e '^[a-z]' | grep -v 'cmdline-tools'`
+          yes 2>/dev/null | $SDK_MANAGER --verbose --install "build-tools;$C_SDK.0.0" "platforms;android-$C_SDK"
+          C_NDK=`./gradlew ndkVersion --quiet`
+          C_NDK=`./gradlew ndkVersion --quiet`
+          echo "ndkVersion = $C_NDK"
+          yes 2>/dev/null | $SDK_MANAGER --verbose --install "ndk;$C_NDK"
           echo "BUILD_REF=${{ github.event.inputs.ref || github.ref_name }}" >> $GITHUB_ENV
           echo "BUILD_TOOLS_VERSION=$(ls /usr/local/lib/android/sdk/build-tools | sort | tail -n 1)" >> $GITHUB_ENV
-          mkdir release
       - name: Build Release APK (universal)
         run: |
           ./gradlew assembleRelease
