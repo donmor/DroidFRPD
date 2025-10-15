@@ -20,54 +20,31 @@ jobs:
           go-version-file: 'frp/go.mod'
           cache-dependency-path: 'frp/go.sum'
       - name: Setup project
-        env:
-          TERM: dumb
         run: |
-          mkdir release
-          go version
-          C_SDK=`grep -o "compileSdk = [0-9]*" app/build.gradle | sed "s/compileSdk = //"`
-          echo "compileSdk = $C_SDK"
-          SDK_MANAGER=/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager
-          yes 2>/dev/null | $SDK_MANAGER --verbose --uninstall `$SDK_MANAGER --list_installed | awk '{print $1}' | grep -e '^[a-z]' | grep -v 'cmdline-tools'`
-          yes 2>/dev/null | $SDK_MANAGER --verbose --install "build-tools;$C_SDK.0.0" "platforms;android-$C_SDK"
-          C_NDK=`./gradlew ndkVersion --quiet`
-          C_NDK=`./gradlew ndkVersion --quiet`
-          echo "ndkVersion = $C_NDK"
-          yes 2>/dev/null | $SDK_MANAGER --verbose --install "ndk;$C_NDK"
+          make purge_sdk
+          make install_sdk
           echo "BUILD_REF=${{ github.event.inputs.ref || github.ref_name }}" >> $GITHUB_ENV
           echo "BUILD_TOOLS_VERSION=$(ls /usr/local/lib/android/sdk/build-tools | sort | tail -n 1)" >> $GITHUB_ENV
-      - name: Build Release APK (universal)
-        run: |
-          ./gradlew assembleRelease
-          mv -v app/build/outputs/apk/release/app-release-unsigned.apk release/
-      - name: Build Release APK (aarch64)
-        run: |
-          echo "frp.disableAmd64 = true" >> local.properties
-          ./gradlew assembleRelease
-          mv -v app/build/outputs/apk/release/app-release-unsigned.apk release/app-release-aarch64-unsigned.apk
-      - name: Build Release APK (x86_64)
-        run: |
-          sed -i "s/disableAmd64/disableArm64/g" local.properties
-          ./gradlew assembleRelease
-          mv -v app/build/outputs/apk/release/app-release-unsigned.apk release/app-release-x86_64-unsigned.apk
+      - name: Build Release APKs (universal, arm64, amd64)
+        run: make release
       - uses: filippoLeporati93/android-release-signer@v1
         id: sign_app
         env:
           BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOLS_VERSION }}
         with:
-          releaseDirectory: release
+          releaseDirectory: app/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
       - name: Move APKs
         run: |
-          mv -v release/app-release-unsigned.apk DroidFRPD-${{ env.BUILD_REF }}-unsigned.apk
-          mv -v release/app-release-aarch64-unsigned.apk DroidFRPD-${{ env.BUILD_REF }}-aarch64-unsigned.apk
-          mv -v release/app-release-x86_64-unsigned.apk DroidFRPD-${{ env.BUILD_REF }}-x86_64-unsigned.apk
-          mv -v release/app-release-unsigned-signed.apk DroidFRPD-${{ env.BUILD_REF }}.apk
-          mv -v release/app-release-aarch64-unsigned-signed.apk DroidFRPD-${{ env.BUILD_REF }}-aarch64.apk
-          mv -v release/app-release-x86_64-unsigned-signed.apk DroidFRPD-${{ env.BUILD_REF }}-x86_64.apk
+          mv -v app/release/app-release-unsigned.apk DroidFRPD-${{ env.BUILD_REF }}-unsigned.apk
+          mv -v app/release/app-release-aarch64-unsigned.apk DroidFRPD-${{ env.BUILD_REF }}-aarch64-unsigned.apk
+          mv -v app/release/app-release-x86_64-unsigned.apk DroidFRPD-${{ env.BUILD_REF }}-x86_64-unsigned.apk
+          mv -v app/release/app-release-unsigned-signed.apk DroidFRPD-${{ env.BUILD_REF }}.apk
+          mv -v app/release/app-release-aarch64-unsigned-signed.apk DroidFRPD-${{ env.BUILD_REF }}-aarch64.apk
+          mv -v app/release/app-release-x86_64-unsigned-signed.apk DroidFRPD-${{ env.BUILD_REF }}-x86_64.apk
       - name: Upload to release assets
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
