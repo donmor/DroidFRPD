@@ -13,6 +13,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.text.method.ScrollingMovementMethod;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -235,8 +236,15 @@ public abstract class Utils {
 		if (isFDroidBuild != null) return isFDroidBuild;
 		PackageManager pm = context.getPackageManager();
 		try {
-			PackageInfo info = pm.getPackageInfo(context.getPackageName(), PackageManager.GET_SIGNATURES);
-			Signature[] signatures = info != null ? info.signatures : null;
+			// GET_SIGNATURES deprecated, considering drop API<28
+			PackageInfo info = pm.getPackageInfo(context.getPackageName(),
+					Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+							? PackageManager.GET_SIGNING_CERTIFICATES
+							: PackageManager.GET_SIGNATURES);
+			Signature[] signatures = info != null ? Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+					? info.signingInfo != null ? info.signingInfo.getApkContentsSigners() : null
+					: info.signatures
+					: null;
 			isFDroidBuild = signatures != null && Arrays.stream(signatures).anyMatch(
 					signature -> {
 						try {

@@ -41,7 +41,7 @@ android {
         applicationId "top.donmor.droidfrpd"
         minSdk = 26
         targetSdk = 36
-        versionCode 104
+        versionCode 105
         versionName "${gradle.version}+${((String) gradle.frpVersion).replaceAll('\\D', '')}"
 
         buildConfigField('String', 'BINARY_FRP_S', "\"libfrps_${((String) gradle.frpVersion).replace('.', '_')}.so\"")
