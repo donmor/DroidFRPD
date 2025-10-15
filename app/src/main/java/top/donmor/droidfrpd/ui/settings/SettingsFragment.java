@@ -24,7 +24,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceGroup;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,6 +37,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.stream.Collectors;
 
+import top.donmor.droidfrpd.BuildConfig;
 import top.donmor.droidfrpd.R;
 import top.donmor.droidfrpd.Utils;
 
@@ -61,6 +64,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 				&& preferenceUpdate != null
 				&& preferenceAbout != null
 				&& activity != null;
+		PreferenceGroup preferenceGroupClient = preferenceConfigClient.getParent(),
+				preferenceGroupServer = preferenceConfigServer.getParent(),
+				preferenceGroupGlobal = preferenceAbout.getParent();
+		assert preferenceGroupClient != null
+				&& preferenceGroupServer != null
+				&& preferenceGroupGlobal != null;
 		String packageName = activity.getPackageName();
 		// Create config editor dialog
 		for (boolean isServer : new boolean[]{false, true}) {
@@ -144,5 +153,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 			showAppInfo(activity, null);
 			return true;
 		});
+		if (!BuildConfig.ENABLE_CLIENT) preferenceGroupClient.setVisible(false);
+		if (!BuildConfig.ENABLE_SERVER) preferenceGroupServer.setVisible(false);
 	}
 }

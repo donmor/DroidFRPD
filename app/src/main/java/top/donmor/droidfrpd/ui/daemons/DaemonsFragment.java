@@ -23,6 +23,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import java.io.File;
 
+import top.donmor.droidfrpd.BuildConfig;
 import top.donmor.droidfrpd.FRPCDaemon;
 import top.donmor.droidfrpd.FRPSDaemon;
 import top.donmor.droidfrpd.R;
@@ -123,8 +124,8 @@ public class DaemonsFragment extends Fragment {
 		super.onDestroyView();
 		final FragmentActivity activity = getActivity();
 		assert activity != null;
-		activity.unbindService(connectionClient);
-		activity.unbindService(connectionServer);
+		if (ENABLE_CLIENT) activity.unbindService(connectionClient);
+		if (ENABLE_SERVER) activity.unbindService(connectionServer);
 		binding = null;
 	}
 }

@@ -1,0 +1,2 @@
+- Hide client/server config in settings if not compiled
+- Fix crash on leaving daemons page if either client/server not compiled
