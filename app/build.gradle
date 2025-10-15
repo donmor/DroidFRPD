@@ -347,6 +347,20 @@ tasks.register('ndkVersion') {
     }
 }
 
+clean {
+    delete "src/main/jniLibs"
+    doLast {
+        def process = Runtime.getRuntime().exec("go clean -x", null, file("../frp"))
+        process.inputStream.eachLine {
+            println it
+        }
+        process.errorStream.eachLine {
+            println it
+        }
+        process.waitFor()
+    }
+}
+
 gradle.projectsEvaluated {
     preBuild.dependsOn('copyLicense')
     preBuild.dependsOn('checkCores')
