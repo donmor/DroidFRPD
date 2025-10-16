@@ -21,7 +21,7 @@ ifeq ($(shell uname -s),Darwin)
 SED_I := sed -i ''
 endif
 
-SDK_MANAGER := $(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager
+SDK_MANAGER ?= $(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager
 C_SDK := $(shell grep -o "compileSdk = [0-9]*" app/build.gradle | sed "s/compileSdk\ =\ //")
 
 all:
@@ -106,6 +106,7 @@ help:
 	echo ""; \
 	echo "  Env (optional):"; \
 	echo "    GO_VERSION       - Use this go version instead of that specified in go.mod"; \
+	echo "    SDK_MANAGER      - Use this sdkmanager instead of that under ANDROID_HOME"; \
 	echo "    NO_CLIENT        - Disable frpc (any value)"; \
 	echo "    NO_SERVER        - Disable frps (any value)"; \
 	echo "    USE_PREBUILT     - Use prebuilt frp binaries (any value)"
