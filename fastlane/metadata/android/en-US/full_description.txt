@@ -13,3 +13,5 @@ There's an option in Settings that jumps to system battery optimization setting 
 
 <h4>Remove activity from recents</h4>
 If enabled, DroidFRPD will be removed from Recent Activities, preventing it from being killed unexpectedly.
+
+Note: Some Malware scanners might mark this app as `ELF:Agent-BIQ` or something else, this usually does not mean the app is malicious. You can check the code of FRP and this project, and check if the apk is reproducible.
