@@ -43,6 +43,9 @@
             android:key="@string/pk_global_ignore_optimization"
             android:title="@string/preference_global_ignore_optimization" />
         <Preference
+            android:key="@string/pk_global_open_conf"
+            android:title="@string/preference_global_open_conf" />
+        <Preference
             android:persistent="false"
             android:key="@string/pk_global_check_update"
             android:title="@string/preference_global_check_update" />

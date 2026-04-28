@@ -1,4 +1,4 @@
 [submodule "frp"]
 	path = frp
 	url = https://github.com/fatedier/frp.git
-	branch = v0.66.0
+	branch = v0.68.1

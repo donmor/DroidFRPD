@@ -18,6 +18,7 @@
     <string name="pk_server_edit_config" translatable="false">pk_server_edit_config</string>
     <string name="pk_server_start_on_boot" translatable="false">pk_server_start_on_boot</string>
     <string name="pk_global_ignore_optimization" translatable="false">pk_global_ignore_optimization</string>
+    <string name="pk_global_open_conf" translatable="false">pk_global_open_conf</string>
     <string name="pk_global_hide_activity" translatable="false">pk_global_hide_activity</string>
     <string name="pk_global_check_update" translatable="false">pk_global_check_update</string>
     <string name="pk_global_about" translatable="false">pk_global_about</string>
@@ -30,6 +31,7 @@
     <string name="preference_client_edit_config">Edit FRP Client config</string>
     <string name="preference_server_edit_config">Edit FRP Server config</string>
     <string name="preference_global_ignore_optimization">Go to Battery Optimization setting</string>
+    <string name="preference_global_open_conf">Open configuration directory</string>
     <string name="preference_global_hide_activity">Hide activity from Recent Apps</string>
     <string name="preference_global_check_update">Check for update</string>
     <string name="preference_global_update">New version: %s</string>

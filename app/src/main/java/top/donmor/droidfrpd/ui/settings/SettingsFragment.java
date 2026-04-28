@@ -8,6 +8,7 @@ import static top.donmor.droidfrpd.Utils.showAppInfo;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -24,7 +25,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.preference.Preference;
-import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
 
@@ -51,6 +51,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 				preferenceConfigServer = findPreference(getString(R.string.pk_server_edit_config)),
 				preferenceStartOnBootClient = findPreference(getString(R.string.pk_client_start_on_boot)),
 				preferenceStartOnBootServer = findPreference(getString(R.string.pk_server_start_on_boot)),
+				preferenceOpenConf = findPreference(getString(R.string.pk_global_open_conf)),
 				preferenceHideApp = findPreference(getString(R.string.pk_global_hide_activity)),
 				preferenceOptimization = findPreference(getString(R.string.pk_global_ignore_optimization)),
 				preferenceUpdate = findPreference(getString(R.string.pk_global_check_update)),
@@ -59,6 +60,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 				&& preferenceConfigServer != null
 				&& preferenceStartOnBootClient != null
 				&& preferenceStartOnBootServer != null
+				&& preferenceOpenConf != null
 				&& preferenceHideApp != null
 				&& preferenceOptimization != null
 				&& preferenceUpdate != null
@@ -108,6 +110,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 				return true;
 			});
 		}
+		preferenceOpenConf.setOnPreferenceClickListener(preference -> {
+			try {
+				startActivity(new Intent(Intent.ACTION_VIEW).setDataAndType(
+						Uri.parse("content://top.donmor.droidfrpd.documents/root/files"), "vnd.android.document/directory"));
+			} catch (ActivityNotFoundException e) {
+				e.printStackTrace();
+			}
+			return true;
+		});
 		preferenceHideApp.setOnPreferenceChangeListener((preference, newValue) -> {
 			boolean v = (Boolean) newValue;
 			((ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE)).getAppTasks()
