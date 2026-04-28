@@ -206,7 +206,34 @@ tasks.register('goVersion', Exec) {
     args 'go', 'version'
 }
 
+tasks.register('npmInstClient', Exec) {
+    workingDir "../frp/web/frpc"
+    executable 'env'
+    args 'npm', 'install'
+}
+
+tasks.register('npmInstServer', Exec) {
+    workingDir "../frp/web/frps"
+    executable 'env'
+    args 'npm', 'install'
+}
+
+tasks.register('npmMakeClient', Exec) {
+    mustRunAfter 'npmInstClient'
+    workingDir "../frp/web/frpc"
+    executable 'make'
+    args 'build'
+}
+
+tasks.register('npmMakeServer', Exec) {
+    mustRunAfter 'npmInstServer'
+    workingDir "../frp/web/frps"
+    executable 'make'
+    args 'build'
+}
+
 tasks.register('buildAmd64FrpClientCore', Exec) {
+    mustRunAfter 'npmMakeClient'
     GString version = "${gradle.frpVersion}"
     String version_ = version.replace('.', '_')
     String obj = 'frpc'
@@ -232,6 +259,7 @@ tasks.register('buildAmd64FrpClientCore', Exec) {
 }
 
 tasks.register('buildAmd64FrpServerCore', Exec) {
+    mustRunAfter 'npmMakeServer'
     GString version = "${gradle.frpVersion}"
     String version_ = version.replace('.', '_')
     String obj = 'frps'
@@ -257,6 +285,7 @@ tasks.register('buildAmd64FrpServerCore', Exec) {
 }
 
 tasks.register('buildArm64FrpClientCore', Exec) {
+    mustRunAfter 'npmMakeClient'
     GString version = "${gradle.frpVersion}"
     String version_ = version.replace('.', '_')
     String obj = 'frpc'
@@ -281,6 +310,7 @@ tasks.register('buildArm64FrpClientCore', Exec) {
 }
 
 tasks.register('buildArm64FrpServerCore', Exec) {
+    mustRunAfter 'npmMakeServer'
     GString version = "${gradle.frpVersion}"
     String version_ = version.replace('.', '_')
     String obj = 'frps'
@@ -321,6 +351,14 @@ tasks.register('checkCores') {
     }
     if (needsUpdate) {
         if (buildBinaries) {
+            if (enableClient) {
+                finalizedBy 'npmInstClient'
+                finalizedBy 'npmMakeClient'
+            }
+            if (enableServer) {
+                finalizedBy 'npmInstServer'
+                finalizedBy 'npmMakeServer'
+            }
             if (enableClient && enableArm64) {
                 finalizedBy 'buildArm64FrpClientCore'
             }
