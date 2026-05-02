@@ -26,7 +26,9 @@ Do following steps to build app (as well as 16KB-aligned core executables) from 
 - Install AGP-recommended NDK version (Run `./gradlew ndkVersion --quiet` to check it out)
   - Or specify `ndk.version=<any installed NDK version>` in `local.properties`
   - NDK r28 or later is required
-- Install latest Golang (or any version newer than that specified in `frp/go.mod`)
+- Install latest Go (or any version newer than that specified in `frp/go.mod`)
+- Install Node.js and npm (required since frp v0.67.0; lts is fine)
+- (Optional) Create `local.properties` from `local.example.properties` and set options as you wish
 - Run `./gradlew assembleRelease` to build app (will run `go build` as well)
 - Sign generated apk with your signatures
 
@@ -34,7 +36,8 @@ It's necessary to use 16KB-aligned core executables built from source if using o
 - A Linux / macOS machine is recommended
 - Clone this repository and `cd` into cloned directory
 - Install latest Android SDK
-- Specify `frp.usePrebuiltExecutables=true` in `local.properties`
+- Create `local.properties` from `local.example.properties` and set `frp.usePrebuiltExecutables=true`
+- (Optional) Set other options in `local.properties` as you wish
 - Run `./gradlew assembleRelease` to build app
 - Sign generated apk with your signatures
 
