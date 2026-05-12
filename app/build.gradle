@@ -34,13 +34,13 @@ assert enableArm64 || enableAmd64
 
 android {
     namespace = 'top.donmor.droidfrpd'
-    compileSdk = 37
+    compileSdkVersion = 37
     if (ndkAlt != null) ndkVersion = ndkAlt
 
     defaultConfig {
         applicationId "top.donmor.droidfrpd"
-        minSdk = 26
-        targetSdk = 37
+        minSdkVersion 26
+        targetSdkVersion 37
         versionCode 101001
         versionName "${gradle.version}+${((String) gradle.frpVersion).replaceAll('\\D', '')}"
 

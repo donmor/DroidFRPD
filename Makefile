@@ -22,7 +22,7 @@ SED_I := sed -i ''
 endif
 
 SDK_MANAGER ?= $(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager
-C_SDK := $(shell grep -o "compileSdk = [0-9]*" app/build.gradle | sed "s/compileSdk\ =\ //")
+C_SDK := $(shell grep -o "compileSdkVersion [0-9]*" app/build.gradle | sed "s/compileSdk\ =\ //")
 
 all:
 	@env TERM=dumb ./gradlew assembleRelease
