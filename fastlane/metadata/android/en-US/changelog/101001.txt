@@ -1,1 +1,2 @@
 Fixed incorrect update checker URL
+Merge to Android 17
