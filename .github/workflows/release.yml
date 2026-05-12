@@ -27,14 +27,16 @@ jobs:
           echo "BUILD_TOOLS_VERSION=$(ls /usr/local/lib/android/sdk/build-tools | sort | tail -n 1)" >> $GITHUB_ENV
       - name: Build Release APKs (universal, arm64, amd64)
         run: make release
-      - uses: ilharp/sign-android-release@v2.0.0
+      - uses: filippoLeporati93/android-release-signer@v1
+        id: sign_app
+        env:
+          BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOLS_VERSION }}
         with:
-          releaseDir: app/release
-          signingKey: ${{ secrets.SIGNING_KEY }}
-          keyAlias: ${{ secrets.ALIAS }}
+          releaseDirectory: app/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
-          buildToolsVersion: ${{ env.BUILD_TOOLS_VERSION }}
       - name: Move APKs
         run: |
           mv -v app/release/app-release-unsigned.apk DroidFRPD-${{ env.BUILD_REF }}-unsigned.apk
