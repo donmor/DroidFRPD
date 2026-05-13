@@ -23,7 +23,6 @@ import androidx.fragment.app.FragmentActivity;
 
 import java.io.File;
 
-import top.donmor.droidfrpd.BuildConfig;
 import top.donmor.droidfrpd.FRPCDaemon;
 import top.donmor.droidfrpd.FRPSDaemon;
 import top.donmor.droidfrpd.R;
