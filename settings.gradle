@@ -24,5 +24,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "DroidFRPD"
 gradle.ext.version = '1.1.1'
-gradle.ext.frpVersion = '0.67.0'
+gradle.ext.frpVersion = '0.70.1'
 include ':app'
